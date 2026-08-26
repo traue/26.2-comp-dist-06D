@@ -1,0 +1,28 @@
+# Executáveis compilados
+bin/
+
+# Arquivos objeto
+*.o
+
+# Arquivos de debug
+*.dSYM/
+
+# Executáveis soltos (caso alguém compile manualmente)
+01_vetores_basico
+02_vetores_matrizes
+03_loop_for
+04_loop_while
+05_loop_do_while
+06_loops_aninhados
+07_break_continue
+08_ponteiros_basico
+09_aritmetica_ponteiros
+10_passagem_referencia
+11_vetores_ponteiros
+12_alocacao_dinamica
+13_ponteiros_de_ponteiros
+14_matriz_dinamica
+15_vetor_strings
+
+# Arquivos temporários do macOS
+.DS_Store
