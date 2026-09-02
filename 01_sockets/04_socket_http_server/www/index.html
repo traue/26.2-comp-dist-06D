@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor HTTP em C - Demo</title>
+    <!-- 
+        Este arquivo é servido pelo nosso servidor HTTP em C!
+        O navegador faz uma requisição GET / e recebe este HTML como resposta.
+        Em seguida, o navegador carrega automaticamente o CSS e JS referenciados.
+    -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="hero">
+        <div class="container">
+            <h1>🌐 Servidor HTTP em C</h1>
+            <p class="subtitle">Este site está sendo servido por um servidor escrito em C puro usando sockets!</p>
+        </div>
+    </header>
+
+    <!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
+    <main class="container">
+
+        <!-- Seção: Status do Servidor -->
+        <section class="card" id="status-card">
+            <h2>📡 Status da Conexão</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Status</span>
+                    <span class="status-value" id="status-indicator">Verificando...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Protocolo</span>
+                    <span class="status-value" id="protocolo">HTTP/1.1</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Servidor</span>
+                    <span class="status-value" id="servidor">MeuServidorHTTP/1.0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Hora local</span>
+                    <span class="status-value" id="hora-local">--:--:--</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção: Como funciona -->
+        <section class="card">
+            <h2>🔧 Como Funciona?</h2>
+            <div class="fluxo">
+                <div class="fluxo-passo">
+                    <div class="passo-numero">1</div>
+                    <div class="passo-conteudo">
+                        <h3>socket()</h3>
+                        <p>O servidor cria um <strong>socket TCP</strong> — um ponto de comunicação na rede.</p>
+                    </div>
+                </div>
+                <div class="fluxo-seta">→</div>
+                <div class="fluxo-passo">
+                    <div class="passo-numero">2</div>
+                    <div class="passo-conteudo">
+                        <h3>bind()</h3>
+                        <p>Associa o socket a um <strong>endereço IP e porta</strong> (ex: 0.0.0.0:8080).</p>
+                    </div>
+                </div>
+                <div class="fluxo-seta">→</div>
+                <div class="fluxo-passo">
+                    <div class="passo-numero">3</div>
+                    <div class="passo-conteudo">
+                        <h3>listen()</h3>
+                        <p>Coloca o socket em modo <strong>escuta</strong>, pronto para receber conexões.</p>
+                    </div>
+                </div>
+                <div class="fluxo-seta">→</div>
+                <div class="fluxo-passo">
+                    <div class="passo-numero">4</div>
+                    <div class="passo-conteudo">
+                        <h3>accept()</h3>
+                        <p>Aguarda e <strong>aceita conexões</strong> de clientes (seu navegador!).</p>
+                    </div>
+                </div>
+                <div class="fluxo-seta">→</div>
+                <div class="fluxo-passo">
+                    <div class="passo-numero">5</div>
+                    <div class="passo-conteudo">
+                        <h3>read() / write()</h3>
+                        <p>Lê a requisição HTTP e <strong>envia a resposta</strong> com o arquivo solicitado.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção: Teste Interativo -->
+        <section class="card">
+            <h2>🧪 Teste Interativo</h2>
+            <p>Clique nos botões abaixo para fazer requisições ao servidor e ver as respostas:</p>
+            
+            <div class="teste-botoes">
+                <button class="btn btn-success" onclick="testarRequisicao('/')">
+                    GET /  (Página Inicial)
+                </button>
+                <button class="btn btn-info" onclick="testarRequisicao('/style.css')">
+                    GET /style.css  (CSS)
+                </button>
+                <button class="btn btn-info" onclick="testarRequisicao('/app.js')">
+                    GET /app.js  (JavaScript)
+                </button>
+                <button class="btn btn-warning" onclick="testarRequisicao('/arquivo-que-nao-existe.html')">
+                    GET /inexistente  (Erro 404)
+                </button>
+            </div>
+
+            <div id="resultado-teste" class="resultado-teste" style="display:none;">
+                <h3>📨 Resultado da Requisição:</h3>
+                <div class="resultado-info">
+                    <div><strong>URL:</strong> <span id="resultado-url"></span></div>
+                    <div><strong>Status:</strong> <span id="resultado-status"></span></div>
+                    <div><strong>Content-Type:</strong> <span id="resultado-tipo"></span></div>
+                    <div><strong>Tamanho:</strong> <span id="resultado-tamanho"></span></div>
+                    <div><strong>Tempo:</strong> <span id="resultado-tempo"></span></div>
+                </div>
+                <h4>Primeiros bytes da resposta:</h4>
+                <pre id="resultado-corpo"></pre>
+            </div>
+        </section>
+
+        <!-- Seção: Requisição/Resposta HTTP -->
+        <section class="card">
+            <h2>📋 Anatomia de uma Requisição HTTP</h2>
+            <div class="http-exemplo">
+                <div class="http-bloco">
+                    <h3>📤 Requisição (Navegador → Servidor)</h3>
+                    <pre class="http-pre"><span class="http-metodo">GET</span> <span class="http-caminho">/index.html</span> <span class="http-versao">HTTP/1.1</span>
+<span class="http-header">Host:</span> localhost:8080
+<span class="http-header">User-Agent:</span> Mozilla/5.0
+<span class="http-header">Accept:</span> text/html
+
+<span class="http-comentario">← Linha vazia marca o fim dos cabeçalhos</span></pre>
+                </div>
+                <div class="http-bloco">
+                    <h3>📥 Resposta (Servidor → Navegador)</h3>
+                    <pre class="http-pre"><span class="http-versao">HTTP/1.1</span> <span class="http-status-ok">200 OK</span>
+<span class="http-header">Content-Type:</span> text/html
+<span class="http-header">Content-Length:</span> 1234
+<span class="http-header">Connection:</span> close
+<span class="http-header">Server:</span> MeuServidorHTTP/1.0
+
+<span class="http-corpo">&lt;!DOCTYPE html&gt;
+&lt;html&gt;...&lt;/html&gt;</span></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção: Contador de visitas (demonstra JS funcionando) -->
+        <section class="card">
+            <h2>🔢 Demonstração JavaScript</h2>
+            <p>Este contador demonstra que o JavaScript foi carregado e executado corretamente pelo navegador:</p>
+            <div class="contador">
+                <button class="btn btn-counter" onclick="decrementar()">−</button>
+                <span class="contador-valor" id="contador">0</span>
+                <button class="btn btn-counter" onclick="incrementar()">+</button>
+            </div>
+            <p class="nota">Se o contador funciona, significa que o servidor serviu o arquivo <code>app.js</code> com o Content-Type correto!</p>
+        </section>
+
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer>
+        <div class="container">
+            <p>Projeto Acadêmico — Servidor HTTP em C usando Sockets</p>
+            <p class="footer-small">Arquivos servidos: HTML + CSS + JavaScript → tudo entregue pelo servidor em C 🚀</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript carregado pelo servidor -->
+    <script src="app.js"></script>
+</body>
+</html>

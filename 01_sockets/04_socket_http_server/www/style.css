@@ -1,0 +1,455 @@
+/*
+ * =============================================================================
+ *  ESTILOS DO SITE DE DEMONSTRAÇÃO
+ * =============================================================================
+ *  Este arquivo CSS é servido pelo nosso servidor HTTP em C.
+ *  O navegador faz uma requisição separada: GET /style.css
+ *  E o servidor responde com Content-Type: text/css
+ * =============================================================================
+ */
+
+/* ========================= RESET E BASE ========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f0f23;
+    color: #e0e0e0;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ========================= HEADER / HERO ========================= */
+
+.hero {
+    background: linear-gradient(135deg, #1a1a3e 0%, #0d0d2b 50%, #1a0a2e 100%);
+    padding: 60px 20px;
+    text-align: center;
+    border-bottom: 3px solid #7c3aed;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: #a0a0c0;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========================= CARDS ========================= */
+
+.card {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 25px auto;
+    max-width: 900px;
+    transition: border-color 0.3s ease;
+}
+
+.card:hover {
+    border-color: #7c3aed;
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    color: #c4b5fd;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a2a4a;
+}
+
+/* ========================= STATUS GRID ========================= */
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.status-item {
+    background: #16162a;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #2a2a4a;
+}
+
+.status-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.status-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+.status-online {
+    color: #4ade80 !important;
+}
+
+.status-offline {
+    color: #f87171 !important;
+}
+
+/* ========================= FLUXO (PASSOS) ========================= */
+
+.fluxo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.fluxo-passo {
+    background: #16162a;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 15px;
+    width: 150px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.fluxo-passo:hover {
+    transform: translateY(-3px);
+    border-color: #7c3aed;
+}
+
+.passo-numero {
+    width: 32px;
+    height: 32px;
+    background: #7c3aed;
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.passo-conteudo h3 {
+    font-size: 0.95rem;
+    color: #a78bfa;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 5px;
+}
+
+.passo-conteudo p {
+    font-size: 0.75rem;
+    color: #aaa;
+    line-height: 1.4;
+}
+
+.fluxo-seta {
+    font-size: 1.5rem;
+    color: #7c3aed;
+    font-weight: bold;
+}
+
+/* ========================= BOTÕES ========================= */
+
+.teste-botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    font-family: 'Courier New', monospace;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-success {
+    background: #059669;
+    color: white;
+}
+
+.btn-info {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-warning {
+    background: #d97706;
+    color: white;
+}
+
+.btn-counter {
+    background: #7c3aed;
+    color: white;
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========================= RESULTADO DO TESTE ========================= */
+
+.resultado-teste {
+    background: #16162a;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.resultado-teste h3 {
+    color: #c4b5fd;
+    margin-bottom: 15px;
+}
+
+.resultado-teste h4 {
+    color: #a78bfa;
+    margin: 15px 0 10px;
+}
+
+.resultado-info {
+    display: grid;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.resultado-info strong {
+    color: #c4b5fd;
+}
+
+.resultado-info span {
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+}
+
+pre {
+    background: #0d0d1a;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    padding: 15px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #e0e0e0;
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* ========================= EXEMPLO HTTP ========================= */
+
+.http-exemplo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 700px) {
+    .http-exemplo {
+        grid-template-columns: 1fr;
+    }
+}
+
+.http-bloco h3 {
+    font-size: 1rem;
+    color: #c4b5fd;
+    margin-bottom: 10px;
+}
+
+.http-pre {
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.http-metodo {
+    color: #4ade80;
+    font-weight: bold;
+}
+
+.http-caminho {
+    color: #60a5fa;
+}
+
+.http-versao {
+    color: #fbbf24;
+}
+
+.http-header {
+    color: #c084fc;
+}
+
+.http-status-ok {
+    color: #4ade80;
+    font-weight: bold;
+}
+
+.http-corpo {
+    color: #94a3b8;
+}
+
+.http-comentario {
+    color: #555;
+    font-style: italic;
+}
+
+/* ========================= CONTADOR ========================= */
+
+.contador {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.contador-valor {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #c4b5fd;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+.nota {
+    font-size: 0.85rem;
+    color: #888;
+    text-align: center;
+    font-style: italic;
+}
+
+.nota code {
+    background: #2a2a4a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #a78bfa;
+    font-size: 0.85rem;
+}
+
+/* ========================= FOOTER ========================= */
+
+footer {
+    background: #0a0a1a;
+    border-top: 1px solid #2a2a4a;
+    padding: 30px 20px;
+    text-align: center;
+    margin-top: 40px;
+}
+
+footer p {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.footer-small {
+    font-size: 0.75rem !important;
+    color: #555 !important;
+    margin-top: 5px;
+}
+
+/* ========================= ANIMAÇÕES ========================= */
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.pulsando {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ========================= RESPONSIVIDADE ========================= */
+
+@media (max-width: 600px) {
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
+    }
+
+    .card {
+        padding: 20px;
+        margin: 15px 10px;
+    }
+
+    .fluxo-passo {
+        width: 100%;
+    }
+
+    .fluxo-seta {
+        transform: rotate(90deg);
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .teste-botoes {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
