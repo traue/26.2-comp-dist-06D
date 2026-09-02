@@ -9,9 +9,11 @@
 
 CC      = gcc
 CFLAGS  = -Wall -Wextra -pedantic -std=c11
+LDLIBS  = -pthread
 
-SERVIDOR = chat_servidor
-CLIENTE  = chat_cliente
+BIN_DIR = bin
+SERVIDOR = $(BIN_DIR)/chat_servidor
+CLIENTE  = $(BIN_DIR)/chat_cliente
 
 ALL = $(SERVIDOR) $(CLIENTE)
 
@@ -22,22 +24,25 @@ all: $(ALL)
 	@echo "✅ Chat compilado com sucesso!"
 	@echo ""
 	@echo "Para testar:"
-	@echo "  Terminal 1:  ./chat_servidor"
-	@echo "  Terminal 2:  ./chat_cliente"
-	@echo "  Terminal 3:  ./chat_cliente"
+	@echo "  Terminal 1:  ./bin/chat_servidor"
+	@echo "  Terminal 2:  ./bin/chat_cliente"
+	@echo "  Terminal 3:  ./bin/chat_cliente"
 
-$(SERVIDOR): chat_servidor.c
+$(SERVIDOR): chat_servidor.c | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $< $(LDLIBS)
+
+$(CLIENTE): chat_cliente.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(CLIENTE): chat_cliente.c
-	$(CC) $(CFLAGS) -o $@ $<
+$(BIN_DIR):
+	mkdir -p $@
 
 clean:
-	rm -f $(ALL)
+	rm -rf $(BIN_DIR)
 	@echo "🧹 Binários removidos."
 
 help:
 	@echo "Alvos disponíveis:"
-	@echo "  make          Compila servidor e cliente do chat"
+	@echo "  make          Compila servidor e cliente do chat em bin/"
 	@echo "  make clean    Remove binários"
 	@echo "  make help     Mostra esta ajuda"

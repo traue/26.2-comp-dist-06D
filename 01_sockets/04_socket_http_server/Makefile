@@ -12,7 +12,8 @@
 # ==============================================================================
 
 # Nome do executável gerado
-TARGET = server
+BIN_DIR = bin
+TARGET = $(BIN_DIR)/server
 
 # Compilador C a ser usado
 CC = gcc
@@ -44,8 +45,11 @@ all: $(TARGET)
 	@echo ""
 
 # Regra de compilação
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+$(TARGET): $(SRC) | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $(SRC)
+
+$(BIN_DIR):
+	mkdir -p $@
 
 # Compila e executa o servidor
 run: $(TARGET)
@@ -56,7 +60,7 @@ run: $(TARGET)
 
 # Remove arquivos compilados
 clean:
-	rm -f $(TARGET)
+	rm -rf $(BIN_DIR)
 	@echo "🧹 Arquivos compilados removidos."
 
 # Exibe ajuda

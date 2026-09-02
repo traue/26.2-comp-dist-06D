@@ -186,16 +186,16 @@ Abra **3+ terminais** na pasta `02_socket_chat`:
 
 ```bash
 # Terminal 1 — servidor
-./chat_servidor
+./bin/chat_servidor
 
 # Terminal 2 — primeiro cliente
-./chat_cliente
+./bin/chat_cliente
 
 # Terminal 3 — segundo cliente
-./chat_cliente
+./bin/chat_cliente
 
 # Terminal 4 (opcional) — mais clientes...
-./chat_cliente
+./bin/chat_cliente
 ```
 
 Cada cliente escolhe um nome ao entrar. Todas as mensagens digitadas em um cliente aparecem nos outros.

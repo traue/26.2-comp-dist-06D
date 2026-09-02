@@ -319,19 +319,19 @@ gcc -Wall -Wextra -o cliente_udp cliente_udp.c
 ### TCP
 ```bash
 # Terminal 1 — inicie o servidor
-./servidor
+./bin/servidor
 
 # Terminal 2 — conecte o cliente
-./cliente
+./bin/cliente
 ```
 
 ### UDP
 ```bash
 # Terminal 1 — inicie o servidor
-./servidor_udp
+./bin/servidor_udp
 
 # Terminal 2 — envie mensagem
-./cliente_udp
+./bin/cliente_udp
 ```
 
 ---

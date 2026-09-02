@@ -13,10 +13,11 @@ CC      = gcc
 CFLAGS  = -Wall -Wextra -pedantic -std=c11
 
 # Alvos
-TCP_SERVER = servidor
-TCP_CLIENT = cliente
-UDP_SERVER = servidor_udp
-UDP_CLIENT = cliente_udp
+BIN_DIR = bin
+TCP_SERVER = $(BIN_DIR)/servidor
+TCP_CLIENT = $(BIN_DIR)/cliente
+UDP_SERVER = $(BIN_DIR)/servidor_udp
+UDP_CLIENT = $(BIN_DIR)/cliente_udp
 
 ALL = $(TCP_SERVER) $(TCP_CLIENT) $(UDP_SERVER) $(UDP_CLIENT)
 
@@ -27,8 +28,8 @@ ALL = $(TCP_SERVER) $(TCP_CLIENT) $(UDP_SERVER) $(UDP_CLIENT)
 all: $(ALL)
 	@echo ""
 	@echo "✅ Todos os exemplos compilados com sucesso!"
-	@echo "   Execute './servidor' e './cliente' em terminais separados para testar TCP."
-	@echo "   Execute './servidor_udp' e './cliente_udp' para testar UDP."
+	@echo "   Execute './bin/servidor' e './bin/cliente' em terminais separados para testar TCP."
+	@echo "   Execute './bin/servidor_udp' e './bin/cliente_udp' para testar UDP."
 
 tcp: $(TCP_SERVER) $(TCP_CLIENT)
 	@echo "✅ Exemplos TCP compilados."
@@ -36,25 +37,28 @@ tcp: $(TCP_SERVER) $(TCP_CLIENT)
 udp: $(UDP_SERVER) $(UDP_CLIENT)
 	@echo "✅ Exemplos UDP compilados."
 
-$(TCP_SERVER): servidor_tcp.c
+$(TCP_SERVER): servidor_tcp.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(TCP_CLIENT): cliente_tcp.c
+$(TCP_CLIENT): cliente_tcp.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(UDP_SERVER): servidor_udp.c
+$(UDP_SERVER): servidor_udp.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(UDP_CLIENT): cliente_udp.c
+$(UDP_CLIENT): cliente_udp.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
+
+$(BIN_DIR):
+	mkdir -p $@
 
 clean:
-	rm -f $(ALL)
+	rm -rf $(BIN_DIR)
 	@echo "🧹 Binários removidos."
 
 help:
 	@echo "Alvos disponíveis:"
-	@echo "  make          Compila todos os exemplos"
+	@echo "  make          Compila todos os exemplos em bin/"
 	@echo "  make tcp      Compila servidor e cliente TCP"
 	@echo "  make udp      Compila servidor e cliente UDP"
 	@echo "  make clean    Remove binários"
