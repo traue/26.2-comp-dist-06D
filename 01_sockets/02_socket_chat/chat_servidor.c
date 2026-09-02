@@ -254,14 +254,15 @@ int main(void)
             /* Notifica todos os outros */
             char aviso[BUFFER_SIZE];
             snprintf(aviso, sizeof(aviso),
-                     ">>> %s entrou no chat (%d online) <<<\n", nome, num_clientes);
+                     ">>> %.*s entrou no chat (%d online) <<<\n",
+                     NOME_SIZE - 1, nome, num_clientes);
             broadcast(aviso, novo_fd);
 
             /* Mensagem de boas-vindas para o novo cliente */
             char bemvindo[BUFFER_SIZE];
             snprintf(bemvindo, sizeof(bemvindo),
-                     ">>> Bem-vindo ao chat, %s! (%d online) <<<\n",
-                     nome, num_clientes);
+                     ">>> Bem-vindo ao chat, %.*s! (%d online) <<<\n",
+                     NOME_SIZE - 1, nome, num_clientes);
             send(novo_fd, bemvindo, strlen(bemvindo), 0);
         }
 
@@ -292,8 +293,8 @@ int main(void)
 
                 char aviso[BUFFER_SIZE];
                 snprintf(aviso, sizeof(aviso),
-                         ">>> %s saiu do chat (%d online) <<<\n",
-                         nome_saiu, num_clientes);
+                         ">>> %.*s saiu do chat (%d online) <<<\n",
+                         NOME_SIZE - 1, nome_saiu, num_clientes);
                 broadcast(aviso, -1);  /* -1 = envia para todos */
 
             } else {
@@ -313,7 +314,9 @@ int main(void)
                 /* Formata "[Nome]: mensagem" e envia para todos os outros */
                 char msg_formatada[BUFFER_SIZE];
                 snprintf(msg_formatada, sizeof(msg_formatada),
-                         "[%s]: %s\n", nome_remetente, buffer);
+                         "[%.*s]: %.*s\n",
+                         NOME_SIZE - 1, nome_remetente,
+                         BUFFER_SIZE - NOME_SIZE - 5, buffer);
                 broadcast(msg_formatada, cli_fd);
             }
         }
