@@ -1,4 +1,4 @@
-# 🧮 Parte 3 — Calculadora Remota com Sockets em C
+# Parte 3 — Calculadora Remota com Sockets em C
 
 ## Objetivo
 
@@ -125,10 +125,10 @@ gcc -Wall -Wextra -o calc_cliente calc_cliente.c
 
 ```bash
 # Terminal 1 — servidor
-./calc_servidor
+./bin/calc_servidor
 
 # Terminal 2 — cliente
-./calc_cliente
+./bin/calc_cliente
 ```
 
 ### Exemplo de sessão
