@@ -1,0 +1,19 @@
+# Exemplo de hostfile para Open MPI.
+# Uma linha por máquina. 'slots' define quantos processos podem rodar lá.
+# Geralmente 'slots' = número de núcleos físicos da máquina.
+#
+# Substitua pelos hostnames ou IPs reais da sua rede.
+
+no01.local slots=4
+no02.local slots=4
+no03.local slots=2
+
+# Também é possível usar IPs diretamente:
+# 192.168.0.11 slots=4
+# 192.168.0.12 slots=4
+
+# Para impedir que o MPI use mais processos do que slots declarados,
+# execute com:   mpirun --hostfile hostfile ... (sem --oversubscribe)
+#
+# Para permitir oversubscription (mais processos que núcleos, útil só
+# para testes didáticos), adicione --oversubscribe no mpirun.
