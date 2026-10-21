@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    =============================================================
+    POM raiz (parent) — projeto multi-módulo Maven
+    Disciplina: Computação Distribuída
+    Projeto: Mini Blog com gRPC
+
+    Submódulos:
+      1. blog-proto  -> definições Protobuf e código gerado
+      2. blog-server -> servidor gRPC + MongoDB
+      3. blog-client -> cliente gRPC interativo (CLI)
+    =============================================================
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.blog</groupId>
+    <artifactId>grpc-blog</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>grpc-blog</name>
+    <description>Mini Blog com gRPC (Computação Distribuída)</description>
+
+    <modules>
+        <module>blog-proto</module>
+        <module>blog-server</module>
+        <module>blog-client</module>
+    </modules>
+
+    <!--
+        Versões centralizadas. Os submódulos herdam estas propriedades
+        e referenciam-nas via ${grpc.version}, ${protobuf.version}, etc.
+    -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+
+        <grpc.version>1.65.0</grpc.version>
+        <protobuf.version>3.25.3</protobuf.version>
+        <mongo.version>5.1.0</mongo.version>
+        <javax.annotation.version>1.3.2</javax.annotation.version>
+
+        <!-- Versões dos plugins -->
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
+        <os.maven.plugin.version>1.7.1</os.maven.plugin.version>
+        <exec.maven.plugin.version>3.4.1</exec.maven.plugin.version>
+    </properties>
+
+    <!--
+        dependencyManagement: define versões padrão para os submódulos.
+        Os submódulos só precisam declarar groupId/artifactId.
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-stub</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-netty-shaded</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongodb-driver-sync</artifactId>
+                <version>${mongo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${javax.annotation.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler.plugin.version}</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec.maven.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <!--
+            Plugins aplicados em TODOS os módulos (via herança).
+            exec-maven-plugin é declarado aqui com skip=true para que,
+            ao rodar `mvn exec:java` com -am (que inclui o parent e o
+            blog-proto no reactor), os módulos sem mainClass simplesmente
+            pulem a execução em vez de falhar com "mainClass missing".
+            blog-server e blog-client sobrescrevem com <skip>false</skip>.
+        -->
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                    <!--
+                        mainClass dummy: o exec-maven-plugin valida que
+                        mainClass está presente ANTES de checar 'skip'.
+                        Sem este valor, mvn exec:java falha na validação
+                        no parent/blog-proto. Com ele, a validação passa
+                        e skip=true impede a execução real.
+                    -->
+                    <mainClass>none</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
