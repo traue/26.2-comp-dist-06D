@@ -1,0 +1,84 @@
+# =============================================================
+# docker-compose.yml — Infraestrutura do Mini Blog gRPC
+#
+# Sobe dois serviços:
+#   1. mongodb   → banco de dados NoSQL (porta 27017)
+#   2. mongo-express → painel admin web (porta 8081)
+#
+# Uso:
+#   docker compose up -d        # sobe em background
+#   docker compose down         # para e remove containers
+#   docker compose down -v      # também remove os volumes (apaga dados)
+# =============================================================
+
+services:
+
+  # -----------------------------------------------------------
+  # MongoDB — banco de dados principal da aplicação
+  # -----------------------------------------------------------
+  mongodb:
+    image: mongo:7.0                          # versão LTS estável
+    container_name: blog-mongodb
+    restart: unless-stopped                   # reinicia automaticamente se cair
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root        # usuário administrador
+      MONGO_INITDB_ROOT_PASSWORD: senha123    # senha (apenas para dev local)
+      MONGO_INITDB_DATABASE: blogdb           # banco criado na inicialização
+
+    ports:
+      - "27017:27017"                         # expõe para o host (servidor Java local)
+
+    volumes:
+      - mongodb_data:/data/db                 # persistência: dados sobrevivem ao restart
+      - ./mongo-init/init.js:/docker-entrypoint-initdb.d/init.js:ro  # script inicial
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - blog-network
+
+  # -----------------------------------------------------------
+  # Mongo Express — interface web administrativa para o MongoDB
+  # Acesso: http://localhost:8081
+  # Login: admin / senha123
+  # -----------------------------------------------------------
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: blog-mongo-express
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy            # aguarda MongoDB estar pronto
+
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: senha123
+      ME_CONFIG_MONGODB_URL: mongodb://root:senha123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin     # login da interface web
+      ME_CONFIG_BASICAUTH_PASSWORD: senha123
+
+    ports:
+      - "8081:8081"                           # painel acessível em http://localhost:8081
+
+    networks:
+      - blog-network
+
+# -----------------------------------------------------------
+# Volumes nomeados — dados persistem entre restarts
+# -----------------------------------------------------------
+volumes:
+  mongodb_data:
+    driver: local
+
+# -----------------------------------------------------------
+# Rede dedicada — containers se comunicam pelo nome do serviço
+# (mongodb → hostname "mongodb" dentro da rede)
+# -----------------------------------------------------------
+networks:
+  blog-network:
+    driver: bridge
