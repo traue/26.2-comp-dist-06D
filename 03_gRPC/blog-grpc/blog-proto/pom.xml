@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    =============================================================
+    Módulo: blog-proto
+
+    Responsável por:
+      1. Definir as mensagens e serviços gRPC no arquivo .proto
+      2. Compilar o .proto e gerar o código Java automaticamente
+      3. Expor as classes geradas para blog-server e blog-client
+
+    Como funciona a geração de código:
+      O plugin protobuf-maven-plugin executa dois geradores:
+        - protoc                 -> classes de mensagens (Post, Comment...)
+        - protoc-gen-grpc-java   -> stubs de servidor e cliente
+
+    Os artefatos protoc e protoc-gen-grpc-java são binários nativos
+    e dependem do sistema operacional. O extension `os-maven-plugin`
+    detecta automaticamente o classifier (linux-x86_64, osx-aarch_64,
+    windows-x86_64, etc.) e o plugin baixa o binário correto.
+    =============================================================
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.blog</groupId>
+        <artifactId>grpc-blog</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>blog-proto</artifactId>
+    <packaging>jar</packaging>
+    <name>blog-proto</name>
+
+    <dependencies>
+        <!-- API gRPC para stubs (interfaces de servidor e cliente) -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+
+        <!-- Runtime do Protobuf -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+
+        <!-- Anotação @Generated usada pelo código gerado (apenas em compile time) -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!--
+            Extension os-maven-plugin: detecta o sistema operacional e
+            arquitetura, populando a propriedade ${os.detected.classifier}.
+            Sem isso, o protobuf-maven-plugin não consegue baixar o
+            binário nativo do protoc adequado para a máquina atual.
+        -->
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os.maven.plugin.version}</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <!--
+                protobuf-maven-plugin: equivalente ao plugin
+                'com.google.protobuf' do Gradle. Executa duas etapas:
+                  - compile      -> gera as classes de mensagem (.java)
+                  - compile-custom -> roda o plugin grpc-java (stubs)
+
+                Por padrão lê arquivos .proto em src/main/proto e gera
+                em target/generated-sources/protobuf/{java,grpc-java}.
+                Esses diretórios são adicionados automaticamente ao
+                source path do compilador Java.
+            -->
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>${protobuf.maven.plugin.version}</version>
+                <configuration>
+                    <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!-- Gera as classes de mensagem (Post, Comment, etc.) -->
+                            <goal>compile</goal>
+                            <!-- Gera os stubs gRPC (PostServiceGrpc, etc.) -->
+                            <goal>compile-custom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
