@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    =============================================================
+    Módulo: blog-server
+
+    Servidor gRPC que:
+      - Implementa PostService e CommentService
+      - Persiste dados no MongoDB (driver oficial Java)
+      - Expõe a porta 9090 para clientes gRPC
+
+    Para executar:
+      mvn -pl blog-server -am compile exec:java
+      (ou via mvnw, ver README)
+    =============================================================
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.blog</groupId>
+        <artifactId>grpc-blog</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>blog-server</artifactId>
+    <packaging>jar</packaging>
+    <name>blog-server</name>
+
+    <properties>
+        <!-- Classe principal usada pelo exec-maven-plugin -->
+        <exec.mainClass>com.blog.server.BlogServer</exec.mainClass>
+    </properties>
+
+    <dependencies>
+        <!-- Código gerado a partir do .proto (mensagens + stubs) -->
+        <dependency>
+            <groupId>com.blog</groupId>
+            <artifactId>blog-proto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Servidor HTTP/2 (Netty) para gRPC -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+
+        <!-- Driver oficial MongoDB para Java (API síncrona) -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+        </dependency>
+
+        <!-- Anotação @Generated usada pelo código gerado -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                exec-maven-plugin: executa a aplicação Java
+                (equivalente ao plugin 'application' + tarefa run do Gradle).
+
+                Uso típico:
+                  mvn -pl blog-server -am compile exec:java
+                Para passar argumentos:
+                  mvn -pl blog-server -am compile exec:java -Dexec.args="8080"
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Reativa exec:java neste módulo (parent define skip=true) -->
+                    <skip>false</skip>
+                    <mainClass>${exec.mainClass}</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

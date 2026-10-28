@@ -1,0 +1,174 @@
+// =============================================================
+// blog.proto — Definição do contrato gRPC do Mini Blog
+//
+// O arquivo .proto é o "contrato" entre cliente e servidor.
+// Tanto o servidor quanto o cliente usam o mesmo .proto para
+// garantir que os dados são interpretados da mesma forma.
+//
+// Disciplina: Computação Distribuída
+// Protocolo: gRPC + Protocol Buffers v3
+// =============================================================
+
+syntax = "proto3";  // Usamos proto3, versão mais moderna e simples
+
+// Pacote lógico para evitar conflitos de nomes
+package blog;
+
+// Opções Java: onde colocar e como organizar o código gerado
+option java_package         = "com.blog.grpc.generated";
+option java_multiple_files  = true;   // Uma classe por arquivo (mais organizado)
+option java_outer_classname = "BlogProto";
+
+// =============================================================
+// SEÇÃO 1: MENSAGENS — Modelos de dados (como DTOs/Records)
+//
+// Campos numbered (= 1, = 2, ...): são os "field tags" do Protobuf.
+// Eles identificam os campos na serialização binária.
+// NUNCA mude os números de campos em produção!
+// =============================================================
+
+// Representa uma postagem no blog
+message Post {
+    string id            = 1;  // ID gerado pelo MongoDB (ObjectId em hex)
+    string title         = 2;  // Título da postagem
+    string content       = 3;  // Corpo/conteúdo da postagem
+    string author        = 4;  // Nome do autor
+    string created_at    = 5;  // Timestamp de criação (ISO-8601)
+    string updated_at    = 6;  // Timestamp da última atualização
+    int32  comment_count = 7;  // Contagem desnormalizada de comentários
+}
+
+// Representa um comentário associado a uma postagem
+message Comment {
+    string id         = 1;  // ID do comentário
+    string post_id    = 2;  // ID da postagem pai (chave estrangeira)
+    string author     = 3;  // Autor do comentário
+    string content    = 4;  // Texto do comentário
+    string created_at = 5;  // Timestamp de criação
+}
+
+// =============================================================
+// SEÇÃO 2: MENSAGENS DE REQUISIÇÃO (Request Messages)
+// Cada RPC tem sua própria mensagem de entrada — boa prática
+// pois facilita adicionar campos no futuro sem quebrar clientes.
+// =============================================================
+
+// --- PostService Requests ---
+
+message CreatePostRequest {
+    string title   = 1;
+    string content = 2;
+    string author  = 3;
+}
+
+message GetPostRequest {
+    string id = 1;  // Busca por ID único
+}
+
+// Suporte a paginação para não sobrecarregar a rede
+message ListPostsRequest {
+    int32 page      = 1;  // Página (começa em 0)
+    int32 page_size = 2;  // Itens por página (0 = usar padrão do servidor)
+}
+
+message UpdatePostRequest {
+    string id      = 1;  // Qual post atualizar
+    string title   = 2;  // Novo título
+    string content = 3;  // Novo conteúdo
+}
+
+message DeletePostRequest {
+    string id = 1;
+}
+
+// --- CommentService Requests ---
+
+message AddCommentRequest {
+    string post_id = 1;
+    string author  = 2;
+    string content = 3;
+}
+
+message GetCommentsRequest {
+    string post_id = 1;  // Busca comentários de uma postagem específica
+}
+
+message DeleteCommentRequest {
+    string id = 1;
+}
+
+// =============================================================
+// SEÇÃO 3: MENSAGENS DE RESPOSTA GENÉRICAS
+// =============================================================
+
+// Resposta padrão para operações de deleção
+message DeleteResponse {
+    bool   success = 1;
+    string message = 2;  // Mensagem descritiva (útil para debug)
+}
+
+// =============================================================
+// SEÇÃO 4: SERVIÇOS gRPC
+//
+// gRPC suporta 4 tipos de RPC:
+//
+// 1. UNÁRIO (Unary):
+//    rpc Metodo(Request) returns (Response)
+//    → Uma requisição, uma resposta (como HTTP normal)
+//
+// 2. STREAMING DO SERVIDOR (Server Streaming):
+//    rpc Metodo(Request) returns (stream Response)
+//    → Uma requisição, múltiplas respostas em sequência
+//    → Útil para: listas grandes, feeds em tempo real
+//
+// 3. STREAMING DO CLIENTE (Client Streaming):
+//    rpc Metodo(stream Request) returns (Response)
+//    → Múltiplas requisições, uma resposta
+//    → Útil para: upload em chunks, batch insert
+//
+// 4. BIDIRECIONAL (Bidirectional Streaming):
+//    rpc Metodo(stream Request) returns (stream Response)
+//    → Múltiplas requisições e respostas (como WebSocket)
+//
+// Neste projeto usamos os tipos 1 e 2 para demonstrar
+// as principais diferenças de padrão de comunicação.
+// =============================================================
+
+// Serviço de gerenciamento de postagens
+service PostService {
+
+    // ---- RPCs UNÁRIOS ----
+    // Padrão clássico: cliente envia 1 request, recebe 1 response
+
+    // Cria uma nova postagem
+    rpc CreatePost (CreatePostRequest) returns (Post);
+
+    // Busca postagem por ID — retorna NOT_FOUND se não existir
+    rpc GetPost (GetPostRequest) returns (Post);
+
+    // Atualiza título e conteúdo de uma postagem
+    rpc UpdatePost (UpdatePostRequest) returns (Post);
+
+    // Remove uma postagem permanentemente
+    rpc DeletePost (DeletePostRequest) returns (DeleteResponse);
+
+    // ---- RPC COM STREAMING DO SERVIDOR ----
+    // O servidor envia posts um a um enquanto o cliente lê com um iterador.
+    // Vantagem: o servidor pode começar a enviar antes de buscar tudo no DB,
+    // e o cliente processa cada item imediatamente (backpressure natural).
+    rpc ListPosts (ListPostsRequest) returns (stream Post);
+}
+
+// Serviço de gerenciamento de comentários
+service CommentService {
+
+    // Adiciona um comentário a uma postagem existente
+    rpc AddComment (AddCommentRequest) returns (Comment);
+
+    // Remove um comentário por ID
+    rpc DeleteComment (DeleteCommentRequest) returns (DeleteResponse);
+
+    // Retorna todos os comentários de um post como stream
+    // Demonstra streaming com filtro (por post_id)
+    rpc GetComments (GetCommentsRequest) returns (stream Comment);
+}

@@ -31,7 +31,7 @@ services:
 
     volumes:
       - mongodb_data:/data/db                 # persistência: dados sobrevivem ao restart
-      - ./mongo-init/init.js:/docker-entrypoint-initdb.d/init.js:ro  # script inicial
+      - ./db-init/init.js:/docker-entrypoint-initdb.d/init.js:ro  # script inicial
 
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]

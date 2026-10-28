@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    =============================================================
+    Módulo: blog-client
+
+    Cliente gRPC interativo (CLI) que:
+      - Conecta ao blog-server via gRPC
+      - Oferece menu de operações (criar post, comentar, etc.)
+      - Demonstra uso de stub bloqueante e streaming do servidor
+
+    Para executar:
+      mvn -pl blog-client -am compile exec:java
+    =============================================================
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.blog</groupId>
+        <artifactId>grpc-blog</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>blog-client</artifactId>
+    <packaging>jar</packaging>
+    <name>blog-client</name>
+
+    <properties>
+        <exec.mainClass>com.blog.client.BlogClient</exec.mainClass>
+    </properties>
+
+    <dependencies>
+        <!-- Código gerado a partir do .proto (mesmo contrato do servidor) -->
+        <dependency>
+            <groupId>com.blog</groupId>
+            <artifactId>blog-proto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Canal gRPC com Netty (transporte HTTP/2) -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                exec-maven-plugin: executa o cliente interativo.
+
+                IMPORTANTE: o cliente lê do stdin (Scanner). Por padrão
+                o exec-maven-plugin roda em uma thread separada e o stdin
+                é repassado normalmente. Caso o terminal não esteja
+                interativo, prefira a forma 'exec:exec' com java direto.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Reativa exec:java neste módulo (parent define skip=true) -->
+                    <skip>false</skip>
+                    <mainClass>${exec.mainClass}</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
