@@ -44,20 +44,71 @@ public class BlogServer {
     // Porta padrão — pode ser sobrescrita via argumento de linha de comando
     private static final int DEFAULT_PORT = 9090;
 
-    // =========================================================
-    // TODO (Aula 2, com a turma) — montar o servidor:
-    //   1. Campos: Server server e MongoDBConfig mongoConfig
-    //   2. Construtor BlogServer(int port): pegar o banco com
-    //      MongoDBConfig.getInstance(), chamar createIndexes(db), criar os
-    //      dois repositórios e montar o servidor com ServerBuilder.forPort(port),
-    //      registrando PostServiceImpl e CommentServiceImpl com addService(...)
-    //   3. start(): server.start() e um shutdown hook que chama stop()
-    //      e depois mongoConfig.close()
-    //   4. stop(): server.shutdown().awaitTermination(30, TimeUnit.SECONDS)
-    //   5. awaitTermination(): server.awaitTermination()
-    //   6. main(String[] args): porta em args[0] (padrão DEFAULT_PORT),
-    //      new BlogServer(porta), start() e awaitTermination()
-    // =========================================================
+    private final Server         server;
+    private final MongoDBConfig  mongoConfig;
+
+    public BlogServer(int port) {
+        this.mongoConfig = MongoDBConfig.getInstance();
+        MongoDatabase db = mongoConfig.getDatabase();
+
+        // Cria índices no MongoDB para otimizar consultas frequentes
+        // Índice em "postId" na coleção "comments" → acelera GetComments
+        createIndexes(db);
+
+        // Inicializa repositórios com as coleções do banco
+        PostRepository    postRepo    = new PostRepository(db.getCollection("posts"));
+        CommentRepository commentRepo = new CommentRepository(db.getCollection("comments"));
+
+        // Constrói o servidor gRPC registrando os dois serviços
+        // ServerBuilder configura o transporte HTTP/2 (Netty) na porta especificada
+        this.server = ServerBuilder.forPort(port)
+                .addService(new PostServiceImpl(postRepo))
+                .addService(new CommentServiceImpl(commentRepo, postRepo))
+                .build();
+    }
+
+    /** Inicia o servidor e registra hook de encerramento. */
+    public void start() throws IOException {
+        server.start();
+
+        logger.info("╔══════════════════════════════════════════╗");
+        logger.info("║   Blog gRPC Server — porta: " + server.getPort() + "         ║");
+        logger.info("║   MongoDB: conectado                     ║");
+        logger.info("║   Serviços: PostService, CommentService  ║");
+        logger.info("╚══════════════════════════════════════════╝");
+
+        // Graceful Shutdown: ao receber SIGTERM (Ctrl+C ou docker stop),
+        // aguarda requisições em andamento terminarem antes de encerrar.
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Sinal de encerramento recebido. Aguardando requisições...");
+            try {
+                stop();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.warning("Encerramento interrompido.");
+            }
+            mongoConfig.close();
+            logger.info("Servidor encerrado com sucesso.");
+        }, "shutdown-hook"));
+    }
+
+    /** Para o servidor aguardando até 30 segundos para limpar. */
+    public void stop() throws InterruptedException {
+        if (server != null) {
+            // shutdown() pede encerramento; awaitTermination() aguarda
+            server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Bloqueia a thread principal até o servidor ser encerrado.
+     * Sem isso, o processo Java terminaria imediatamente após start().
+     */
+    public void awaitTermination() throws InterruptedException {
+        if (server != null) {
+            server.awaitTermination();
+        }
+    }
 
     /**
      * Cria índices no MongoDB para otimizar as consultas mais frequentes.
@@ -80,5 +131,25 @@ public class BlogServer {
         );
 
         logger.info("Índices MongoDB criados/verificados.");
+    }
+
+    // =========================================================
+    // MAIN
+    // =========================================================
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        // Permite configurar a porta via argumento: ./gradlew :blog-server:run --args="8080"
+        int port = DEFAULT_PORT;
+        if (args.length > 0) {
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                logger.warning("Porta inválida '" + args[0] + "'. Usando padrão: " + DEFAULT_PORT);
+            }
+        }
+
+        BlogServer blogServer = new BlogServer(port);
+        blogServer.start();
+        blogServer.awaitTermination(); // bloqueia aqui até Ctrl+C
     }
 }

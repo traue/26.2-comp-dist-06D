@@ -1,0 +1,6 @@
+/Users/thiagotraue/Library/Mobile Documents/com~apple~CloudDocs/Mackenzie/Aulas/Computação Distribuída/Aulas/Aula 16 - gRPC/gRPC - blog_v3-MAVEN/blog-server/src/main/java/com/blog/server/BlogServer.java
+/Users/thiagotraue/Library/Mobile Documents/com~apple~CloudDocs/Mackenzie/Aulas/Computação Distribuída/Aulas/Aula 16 - gRPC/gRPC - blog_v3-MAVEN/blog-server/src/main/java/com/blog/server/config/MongoDBConfig.java
+/Users/thiagotraue/Library/Mobile Documents/com~apple~CloudDocs/Mackenzie/Aulas/Computação Distribuída/Aulas/Aula 16 - gRPC/gRPC - blog_v3-MAVEN/blog-server/src/main/java/com/blog/server/repository/CommentRepository.java
+/Users/thiagotraue/Library/Mobile Documents/com~apple~CloudDocs/Mackenzie/Aulas/Computação Distribuída/Aulas/Aula 16 - gRPC/gRPC - blog_v3-MAVEN/blog-server/src/main/java/com/blog/server/repository/PostRepository.java
+/Users/thiagotraue/Library/Mobile Documents/com~apple~CloudDocs/Mackenzie/Aulas/Computação Distribuída/Aulas/Aula 16 - gRPC/gRPC - blog_v3-MAVEN/blog-server/src/main/java/com/blog/server/service/CommentServiceImpl.java
+/Users/thiagotraue/Library/Mobile Documents/com~apple~CloudDocs/Mackenzie/Aulas/Computação Distribuída/Aulas/Aula 16 - gRPC/gRPC - blog_v3-MAVEN/blog-server/src/main/java/com/blog/server/service/PostServiceImpl.java

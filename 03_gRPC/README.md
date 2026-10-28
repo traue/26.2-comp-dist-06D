@@ -55,9 +55,9 @@
 ```
 grpc-blog/
 ├── pom.xml                             ← POM raiz (parent) multi-módulo
-├── mvnw, mvnw.cmd, .mvn/               ← Maven Wrapper (só se não houver Maven instalado)
+├── mvnw, mvnw.cmd, .mvn/               ← Maven Wrapper (não precisa instalar Maven)
 ├── docker-compose.yml                  ← MongoDB + Mongo Express
-├── db-init/
+├── mongo-init/
 │   └── init.js                         ← dados iniciais de exemplo
 │
 ├── blog-proto/                         ← MÓDULO 1: definição do contrato
@@ -84,12 +84,6 @@ grpc-blog/
         └── BlogClient.java             ← menu interativo gRPC
 ```
 
-> **Importante:** o `pom.xml` raiz lista os três módulos (`blog-proto`,
-> `blog-server`, `blog-client`), e o Maven lê **todos** antes de executar
-> qualquer comando, mesmo com `-pl`. Cada módulo precisa existir como pasta
-> **com o seu próprio `pom.xml`**, ainda que sem código. Sem isso, o build
-> para com `Child module ... does not exist`.
-
 ---
 
 ## Pré-requisitos
@@ -100,13 +94,14 @@ grpc-blog/
 | Docker          | 24+           | `docker --version`           |
 | Docker Compose  | 2.x           | `docker compose version`     |
 | Git             | qualquer      | `git --version`              |
-| Maven           | 3.6.3         | `mvn -v`                     |
 
-> **Sobre o Maven:** os comandos deste guia usam o `mvn` instalado na máquina
-> (versão 3.6.3 ou superior; o Maven dos repositórios do Ubuntu serve).
-> Se a máquina **não** tiver Maven, use o **Maven Wrapper** incluído no projeto:
-> troque `mvn` por `./mvnw` (Linux/macOS) ou `mvnw.cmd` (Windows) em todos os
-> comandos. Na primeira execução, o wrapper baixa o Maven sozinho.
+> **Nota:** O **Maven Wrapper** (`mvnw`) já está incluído no projeto.
+> Você **não precisa instalar o Maven** na máquina — basta ter o JDK 21.
+> Na primeira execução o `mvnw` baixa automaticamente a versão correta do Maven.
+
+> **Sobre o Maven instalado:** Caso prefira usar uma instalação local de Maven
+> (versão 3.9 ou superior), basta substituir `./mvnw` por `mvn` em todos os
+> comandos abaixo.
 
 ---
 
@@ -124,15 +119,7 @@ unzip grpc-blog.zip
 cd grpc-blog
 ```
 
-Confira se você está na **raiz do projeto**. Todos os comandos `mvn` e
-`docker compose` deste guia são executados a partir dela:
-
-```bash
-ls
-# blog-client  blog-proto  blog-server  db-init  docker-compose.yml  mvnw  mvnw.cmd  pom.xml  README.md
-```
-
-Se for usar o wrapper no **Linux/macOS**, garanta a permissão de execução:
+No **Linux/macOS**, garanta a permissão de execução do wrapper:
 ```bash
 chmod +x mvnw
 ```
@@ -200,25 +187,9 @@ executa duas etapas durante a fase `generate-sources`:
 | `protobuf:compile`         | Roda o `protoc` → gera mensagens (`Post.java`, `Comment.java`...) |
 | `protobuf:compile-custom`  | Roda o `protoc-gen-grpc-java` → gera os stubs gRPC           |
 
-**Montando o projeto do zero?** Para gerar o código do proto, a estrutura
-mínima é esta (os módulos `blog-server` e `blog-client` podem estar só com o
-`pom.xml`, sem código ainda):
-
-```
-grpc-blog/
-├── pom.xml                            ← POM raiz (lista os 3 módulos)
-├── blog-proto/
-│   ├── pom.xml
-│   └── src/main/proto/blog.proto      ← o .proto precisa estar exatamente aqui
-├── blog-server/
-│   └── pom.xml
-└── blog-client/
-    └── pom.xml
-```
-
 ```bash
 # Gera apenas o código a partir do blog.proto (sem compilar Java ainda)
-mvn -pl blog-proto generate-sources
+./mvnw -pl blog-proto generate-sources
 
 # Onde o código é gerado:
 ls blog-proto/target/generated-sources/protobuf/
@@ -257,7 +228,7 @@ ls blog-proto/target/generated-sources/protobuf/java/com/blog/grpc/generated/
 
 ```bash
 # Compila todos os módulos (proto → server → client)
-mvn clean package
+./mvnw clean package
 
 # Saída esperada: BUILD SUCCESS
 # Os JARs ficam em: <modulo>/target/<modulo>-1.0.0.jar
@@ -265,7 +236,7 @@ mvn clean package
 
 Pulando a fase de testes (mais rápido):
 ```bash
-mvn clean package -DskipTests
+./mvnw clean package -DskipTests
 ```
 
 Se houver erro, verifique:
@@ -274,7 +245,7 @@ Se houver erro, verifique:
 java -version   # deve mostrar 21.x
 
 # Limpar e recompilar com saída detalhada
-mvn clean package -X
+./mvnw clean package -X
 ```
 
 ---
@@ -284,9 +255,9 @@ mvn clean package -X
 Abra um **novo terminal** (ou aba) na raiz do projeto:
 
 ```bash
-# Compila o blog-proto (do qual o servidor depende) no mesmo build
-# e depois executa o servidor.
-mvn -pl blog-server -am compile exec:java
+# Garante que blog-proto está no repositório local (.m2) primeiro,
+# depois executa o servidor.
+./mvnw -pl blog-server -am compile exec:java
 
 # Saída esperada:
 # ╔══════════════════════════════════════════╗
@@ -304,7 +275,7 @@ Explicando as flags:
 
 **Servidor em porta diferente** (passando argumentos):
 ```bash
-mvn -pl blog-server -am compile exec:java -Dexec.args="8080"
+./mvnw -pl blog-server -am compile exec:java -Dexec.args="8080"
 ```
 
 **Verificar que o servidor está aceitando conexões:**
@@ -322,7 +293,7 @@ Abra **outro terminal** e execute:
 
 ```bash
 # Inicia o cliente interativo
-mvn -pl blog-client -am compile exec:java
+./mvnw -pl blog-client -am compile exec:java
 
 # Menu exibido:
 # ╔══════════════════════════════════════╗
@@ -334,8 +305,8 @@ mvn -pl blog-client -am compile exec:java
 > **Dica:** Se o terminal não estiver repassando o stdin para o processo
 > Java (cenário raro), execute o JAR diretamente:
 > ```bash
-> mvn -pl blog-client -am install -DskipTests
-> java -cp "blog-client/target/blog-client-1.0.0.jar:$(mvn -pl blog-client dependency:build-classpath -q -DincludeScope=runtime -Dmdep.outputFile=/dev/stdout 2>/dev/null)" \
+> ./mvnw -pl blog-client -am package -DskipTests
+> java -cp "blog-client/target/blog-client-1.0.0.jar:$(./mvnw -pl blog-client dependency:build-classpath -q -DincludeScope=runtime -Dmdep.outputFile=/dev/stdout 2>/dev/null)" \
 >   com.blog.client.BlogClient
 > ```
 
@@ -411,22 +382,22 @@ docker exec -it blog-mongodb mongosh \
 # ----- Maven -----
 
 # Compilar apenas um módulo (sem dependências)
-mvn -pl blog-proto package
+./mvnw -pl blog-proto package
 
 # Compilar um módulo e tudo que ele depende (ex: blog-server precisa de blog-proto)
-mvn -pl blog-server -am package
+./mvnw -pl blog-server -am package
 
 # Rodar o servidor em uma porta específica
-mvn -pl blog-server -am compile exec:java -Dexec.args="8080"
+./mvnw -pl blog-server -am compile exec:java -Dexec.args="8080"
 
 # Forçar regeneração dos protos
-mvn -pl blog-proto clean generate-sources
+./mvnw -pl blog-proto clean generate-sources
 
 # Listar a árvore de dependências de um módulo
-mvn -pl blog-server -am dependency:tree
+./mvnw -pl blog-server dependency:tree
 
 # Build offline (após primeira execução, usa só o cache em ~/.m2)
-mvn -o clean package
+./mvnw -o clean package
 ```
 
 ---
@@ -577,40 +548,20 @@ docker compose up -d mongodb
 java -version
 
 # Limpe caches do projeto
-mvn clean
+./mvnw clean
 
 # Compile com saída detalhada para diagnóstico
-mvn clean package -X
+./mvnw clean package -X
 ```
-
-### `Child module ... does not exist`
-A pasta de um módulo (ou o `pom.xml` dentro dela) não existe. O `pom.xml` raiz
-lista os três módulos, e o Maven lê todos antes de rodar qualquer comando,
-mesmo com `-pl`. Confira a estrutura a partir da raiz do projeto:
-```bash
-ls */pom.xml
-# blog-client/pom.xml  blog-proto/pom.xml  blog-server/pom.xml
-```
-
-### `./mvnw: Arquivo ou diretório inexistente`
-O `mvnw` não está na pasta atual: você não está na raiz do projeto, ou a pasta
-foi copiada pela metade. Se a máquina tiver Maven, basta usar `mvn`.
-
-### `Could not find the selected project in the reactor`
-O nome passado no `-pl` está errado (ex.: `blogo-proto`). Use exatamente
-`blog-proto`, `blog-server` ou `blog-client`.
-
-### Avisos `WARNING: ... sun.misc.Unsafe ...` no início da saída
-Aparecem com JDK 24 ou mais novo e vêm do próprio Maven. São inofensivos.
 
 ### Erro `Could not resolve dependencies` no primeiro build
 A primeira execução baixa todas as dependências do Maven Central.
 É necessário acesso à internet. Tente novamente:
 ```bash
-mvn -U clean package    # -U força update dos metadados
+./mvnw -U clean package    # -U força update dos metadados
 ```
 
-### Maven Wrapper sem permissão de execução (Linux/macOS, só para quem usa o wrapper)
+### Maven Wrapper sem permissão de execução (Linux/macOS)
 ```bash
 chmod +x mvnw
 ```
@@ -618,16 +569,12 @@ chmod +x mvnw
 ### Geração de código Protobuf falhou
 ```bash
 # Limpa apenas o blog-proto e regenera
-mvn -pl blog-proto clean generate-sources
+./mvnw -pl blog-proto clean generate-sources
 
 # Se o erro mencionar 'os.detected.classifier' indefinido,
 # significa que a extension os-maven-plugin não foi carregada.
 # Confirme que blog-proto/pom.xml contém a tag <extensions>.
 ```
-
-Se o build termina sem erro, mas nada aparece em
-`blog-proto/target/generated-sources/protobuf/`, o `.proto` não está em
-`blog-proto/src/main/proto/`.
 
 ### Mongo Express não abre
 ```bash
@@ -639,12 +586,9 @@ docker compose restart mongo-express
 ### Dados de exemplo não aparecem
 ```bash
 # O init.js só roda na PRIMEIRA vez que o volume é criado
-# Para rodar novamente, apague o volume (isso apaga os dados do banco):
+# Para rodar novamente, apague o volume:
 docker compose down -v
 docker compose up -d
-
-# Alternativa sem apagar os dados (rode uma vez só):
-docker exec blog-mongodb mongosh "mongodb://root:senha123@localhost:27017/admin" /docker-entrypoint-initdb.d/init.js
 ```
 
 ---

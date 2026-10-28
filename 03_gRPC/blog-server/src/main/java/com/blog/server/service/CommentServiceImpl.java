@@ -146,17 +146,49 @@ public class CommentServiceImpl extends CommentServiceGrpc.CommentServiceImplBas
     }
 
     // =========================================================
-    // TODO (Aula 2, sozinhos) — RPC com streaming do servidor: GetComments
+    // RPC COM STREAMING DO SERVIDOR: GetComments
     //
-    //   @Override
-    //   public void getComments(GetCommentsRequest request,
-    //                           StreamObserver<Comment> responseObserver)
+    // Retorna todos os comentários de um post como um stream.
+    // Cada Comment é enviado individualmente com onNext().
     //
-    // Mesmo padrão do listPosts:
-    //   1. post_id vazio → onError(Status.INVALID_ARGUMENT ...)
-    //   2. commentRepository.findByPostId(request.getPostId())
-    //   3. um onNext(comment) para cada comentário
-    //   4. onCompleted() no final
-    // Até ser implementado, o gRPC responde UNIMPLEMENTED.
+    // Por que streaming aqui?
+    //   Um post popular pode ter centenas de comentários.
+    //   Com streaming, o cliente processa cada comentário imediatamente
+    //   sem precisar esperar o servidor construir uma lista completa,
+    //   e a memória usada é proporcional a 1 comentário, não a todos.
     // =========================================================
+
+    @Override
+    public void getComments(GetCommentsRequest request,
+                            StreamObserver<Comment> responseObserver) {
+
+        logger.info("RPC getComments (streaming). Post: " + request.getPostId());
+
+        if (request.getPostId().isBlank()) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("postId é obrigatório.")
+                            .asRuntimeException()
+            );
+            return;
+        }
+
+        try {
+            List<Comment> comments = commentRepository.findByPostId(request.getPostId());
+
+            // Streaming: envia um Comment por vez
+            for (Comment comment : comments) {
+                responseObserver.onNext(comment);
+            }
+
+            responseObserver.onCompleted();
+            logger.info("Stream getComments concluído. Comentários: " + comments.size());
+
+        } catch (Exception e) {
+            logger.severe("Erro ao buscar comentários: " + e.getMessage());
+            responseObserver.onError(
+                    Status.INTERNAL.withCause(e).asRuntimeException()
+            );
+        }
+    }
 }

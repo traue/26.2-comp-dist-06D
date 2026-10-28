@@ -40,20 +40,219 @@ public class PostServiceImpl extends PostServiceGrpc.PostServiceImplBase {
     }
 
     // =========================================================
-    // TODO (Aula 2) — implementar os RPCs do PostService.
-    //
-    // Enquanto um método não for sobrescrito aqui, o gRPC responde
-    // UNIMPLEMENTED ao cliente (o projeto compila e roda mesmo assim).
-    // Todo método precisa terminar com onCompleted() ou onError();
-    // senão o cliente fica esperando para sempre.
-    //
-    // Com a turma:
-    //   @Override public void createPost(CreatePostRequest request, StreamObserver<Post> responseObserver)
-    //   @Override public void getPost(GetPostRequest request, StreamObserver<Post> responseObserver)
-    //   @Override public void listPosts(ListPostsRequest request, StreamObserver<Post> responseObserver)
-    //
-    // Sozinhos, no mesmo padrão:
-    //   @Override public void updatePost(UpdatePostRequest request, StreamObserver<Post> responseObserver)
-    //   @Override public void deletePost(DeletePostRequest request, StreamObserver<DeleteResponse> responseObserver)
+    // RPC UNÁRIO: CreatePost
+    // Fluxo: Cliente → [CreatePostRequest] → Servidor → [Post] → Cliente
     // =========================================================
+
+    @Override
+    public void createPost(CreatePostRequest request,
+                           StreamObserver<Post> responseObserver) {
+
+        logger.info("RPC createPost chamado. Autor: " + request.getAuthor());
+
+        // Validação de entrada (Status.INVALID_ARGUMENT = HTTP 400)
+        if (request.getTitle().isBlank() || request.getContent().isBlank()
+                || request.getAuthor().isBlank()) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("Título, conteúdo e autor são obrigatórios.")
+                            .asRuntimeException()
+            );
+            return;
+        }
+
+        try {
+            Post post = postRepository.create(
+                    request.getTitle(),
+                    request.getContent(),
+                    request.getAuthor()
+            );
+
+            // Envia a resposta única (RPC unário = exatamente 1 onNext + onCompleted)
+            responseObserver.onNext(post);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            logger.severe("Erro ao criar post: " + e.getMessage());
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Erro interno ao criar post.")
+                            .withCause(e)
+                            .asRuntimeException()
+            );
+        }
+    }
+
+    // =========================================================
+    // RPC UNÁRIO: GetPost
+    // =========================================================
+
+    @Override
+    public void getPost(GetPostRequest request,
+                        StreamObserver<Post> responseObserver) {
+
+        logger.info("RPC getPost chamado. ID: " + request.getId());
+
+        if (request.getId().isBlank()) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("ID do post é obrigatório.")
+                            .asRuntimeException()
+            );
+            return;
+        }
+
+        try {
+            Optional<Post> post = postRepository.findById(request.getId());
+
+            if (post.isPresent()) {
+                responseObserver.onNext(post.get());
+                responseObserver.onCompleted();
+            } else {
+                // Status.NOT_FOUND encerra o RPC com erro — cliente recebe StatusException
+                responseObserver.onError(
+                        Status.NOT_FOUND
+                                .withDescription("Post não encontrado. ID: " + request.getId())
+                                .asRuntimeException()
+                );
+            }
+
+        } catch (Exception e) {
+            logger.severe("Erro ao buscar post: " + e.getMessage());
+            responseObserver.onError(
+                    Status.INTERNAL.withCause(e).asRuntimeException()
+            );
+        }
+    }
+
+    // =========================================================
+    // RPC UNÁRIO: UpdatePost
+    // =========================================================
+
+    @Override
+    public void updatePost(UpdatePostRequest request,
+                           StreamObserver<Post> responseObserver) {
+
+        logger.info("RPC updatePost chamado. ID: " + request.getId());
+
+        if (request.getId().isBlank() || request.getTitle().isBlank()
+                || request.getContent().isBlank()) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("ID, título e conteúdo são obrigatórios para atualização.")
+                            .asRuntimeException()
+            );
+            return;
+        }
+
+        try {
+            Optional<Post> updated = postRepository.update(
+                    request.getId(),
+                    request.getTitle(),
+                    request.getContent()
+            );
+
+            if (updated.isPresent()) {
+                responseObserver.onNext(updated.get());
+                responseObserver.onCompleted();
+            } else {
+                responseObserver.onError(
+                        Status.NOT_FOUND
+                                .withDescription("Post não encontrado para atualização. ID: " + request.getId())
+                                .asRuntimeException()
+                );
+            }
+
+        } catch (Exception e) {
+            logger.severe("Erro ao atualizar post: " + e.getMessage());
+            responseObserver.onError(
+                    Status.INTERNAL.withCause(e).asRuntimeException()
+            );
+        }
+    }
+
+    // =========================================================
+    // RPC UNÁRIO: DeletePost
+    // =========================================================
+
+    @Override
+    public void deletePost(DeletePostRequest request,
+                           StreamObserver<DeleteResponse> responseObserver) {
+
+        logger.info("RPC deletePost chamado. ID: " + request.getId());
+
+        try {
+            boolean deleted = postRepository.delete(request.getId());
+
+            DeleteResponse response = DeleteResponse.newBuilder()
+                    .setSuccess(deleted)
+                    .setMessage(deleted
+                            ? "Post removido com sucesso."
+                            : "Post não encontrado. ID: " + request.getId())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            logger.severe("Erro ao deletar post: " + e.getMessage());
+            responseObserver.onError(
+                    Status.INTERNAL.withCause(e).asRuntimeException()
+            );
+        }
+    }
+
+    // =========================================================
+    // RPC COM STREAMING DO SERVIDOR: ListPosts
+    //
+    // Diferença fundamental em relação ao RPC unário:
+    //   - Chamamos onNext() MÚLTIPLAS vezes — uma por post
+    //   - O cliente recebe cada Post assim que o servidor chama onNext()
+    //   - onCompleted() só é chamado depois de enviar todos os posts
+    //
+    // Vantagem: o cliente pode começar a processar o primeiro post
+    // antes do servidor terminar de buscar o restante no banco.
+    //
+    // Fluxo:
+    //   Cliente → [ListPostsRequest] → Servidor
+    //   Servidor → [Post1] → Cliente
+    //   Servidor → [Post2] → Cliente
+    //   ...
+    //   Servidor → [PostN] → Cliente
+    //   Servidor → onCompleted() → Cliente (stream encerrado)
+    // =========================================================
+
+    @Override
+    public void listPosts(ListPostsRequest request,
+                          StreamObserver<Post> responseObserver) {
+
+        int page     = Math.max(0, request.getPage());         // página mínima = 0
+        int pageSize = request.getPageSize() > 0
+                ? request.getPageSize() : 10;                  // padrão = 10
+
+        logger.info("RPC listPosts (streaming). Página: " + page
+                + ", Tamanho: " + pageSize);
+
+        try {
+            List<Post> posts = postRepository.findAll(page, pageSize);
+
+            // Envia cada post individualmente pelo stream
+            for (Post post : posts) {
+                responseObserver.onNext(post);
+                // Nota: em produção, verifique responseObserver.isCancelled()
+                // para parar cedo se o cliente cancelar a stream
+            }
+
+            // Sinaliza que não há mais posts — cliente encerra a leitura
+            responseObserver.onCompleted();
+
+            logger.info("Stream listPosts concluído. Posts enviados: " + posts.size());
+
+        } catch (Exception e) {
+            logger.severe("Erro ao listar posts: " + e.getMessage());
+            responseObserver.onError(
+                    Status.INTERNAL.withCause(e).asRuntimeException()
+            );
+        }
+    }
 }
