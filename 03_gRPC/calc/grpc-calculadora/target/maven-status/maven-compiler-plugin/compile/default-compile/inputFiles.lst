@@ -1,0 +1,9 @@
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/src/main/java/br/mackenzie/grpc/client/ClienteGrpc.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/src/main/java/br/mackenzie/grpc/server/CalculadoraServiceImpl.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/src/main/java/br/mackenzie/grpc/server/ServidorGrpc.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/target/generated-sources/protobuf/grpc-java/br/mackenzie/grpc/CalculadoraServiceGrpc.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/target/generated-sources/protobuf/java/br/mackenzie/grpc/CalculadoraProto.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/target/generated-sources/protobuf/java/br/mackenzie/grpc/CalculadoraRequest.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/target/generated-sources/protobuf/java/br/mackenzie/grpc/CalculadoraRequestOrBuilder.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/target/generated-sources/protobuf/java/br/mackenzie/grpc/CalculadoraResponse.java
+/Users/thiagotraue/Downloads/teste_grcp/grpc-calculadora/target/generated-sources/protobuf/java/br/mackenzie/grpc/CalculadoraResponseOrBuilder.java

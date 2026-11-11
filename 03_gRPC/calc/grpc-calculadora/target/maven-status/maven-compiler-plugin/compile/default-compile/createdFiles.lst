@@ -1,0 +1,16 @@
+br/mackenzie/grpc/CalculadoraServiceGrpc$2.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$AsyncService.class
+br/mackenzie/grpc/CalculadoraServiceGrpc.class
+br/mackenzie/grpc/server/ServidorGrpc.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$MethodHandlers.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceImplBase.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceStub.class
+br/mackenzie/grpc/client/ClienteGrpc.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceMethodDescriptorSupplier.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceBaseDescriptorSupplier.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$3.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceFileDescriptorSupplier.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceBlockingStub.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$CalculadoraServiceFutureStub.class
+br/mackenzie/grpc/CalculadoraServiceGrpc$1.class
+br/mackenzie/grpc/server/CalculadoraServiceImpl.class

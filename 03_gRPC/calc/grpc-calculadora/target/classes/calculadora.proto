@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "br.mackenzie.grpc";
+option java_outer_classname = "CalculadoraProto";
+
+service CalculadoraService {
+
+  rpc somar (CalculadoraRequest)
+      returns (CalculadoraResponse);
+
+  rpc subtrair (CalculadoraRequest)
+      returns (CalculadoraResponse);
+
+  rpc multiplicar (CalculadoraRequest)
+      returns (CalculadoraResponse);
+
+  rpc dividir (CalculadoraRequest)
+      returns (CalculadoraResponse);
+}
+
+message CalculadoraRequest {
+  double numero1 = 1;
+  double numero2 = 2;
+}
+
+message CalculadoraResponse {
+  double resultado = 1;
+}
